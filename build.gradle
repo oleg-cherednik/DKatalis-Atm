@@ -1,0 +1,75 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'jacoco'
+    id 'java-library'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+group = 'ru.oleg-cherednik.dkatalis'
+version = '1.0'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+configurations {
+    jar.archiveFileName = "${rootProject.name}-${version}.jar"
+}
+
+dependencies {
+    compile 'org.apache.commons:commons-lang3:3.12.0'
+
+    testCompile 'org.mockito:mockito-core:3.11.2'
+    testCompile 'org.assertj:assertj-core:3.20.2'
+    testCompile('org.testng:testng:7.4.0') {
+        exclude group: 'junit', module: 'junit'
+        exclude group: 'org.apache.ant', module: 'ant'
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+check.dependsOn jacocoTestReport
+
+test {
+    useTestNG()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ru.olegcherednik.dkatalis.atm.Atm'
+    }
+
+    from {
+        configurations.compile.collect {it.isDirectory() ? it : zipTree(it)}
+    }
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'ru.olegcherednik.dkatalis.atm.Atm'
+    }
+    baseName = project.name
+    from {configurations.compile.collect {it.isDirectory() ? it : zipTree(it)}}
+    with jar
+}
+
